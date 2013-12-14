@@ -17,13 +17,15 @@ done
 host enter-chroot -n "$RELEASE" true
 
 # Incorrect password on encrypted chroot
-CROUTON_PASSPHRASE=wrongfuelcelldonkeyclip \
-    fails host enter-chroot -n "$RELEASE" true
+correct="$CROUTON_PASSPHRASE"
+export CROUTON_PASSPHRASE=wrongfuelcelldonkeyclip
+fails host enter-chroot -n "$RELEASE" true
 
 # Change encrypted chroot passphrase
-CROUTON_NEW_PASSPHRASE='correcthorsebatterystable'
-host edit-chroot -e -n "$RELEASE"
-CROUTON_PASSPHRASE="$CROUTON_NEW_PASSPHRASE"
+export CROUTON_PASSPHRASE="$correct"
+export CROUTON_NEW_PASSPHRASE='correcthorsebatterystable'
+host edit-chroot -e "$RELEASE"
+export CROUTON_PASSPHRASE="$CROUTON_NEW_PASSPHRASE"
 host enter-chroot -n "$RELEASE" true
 
 # Move key to separate file
@@ -114,24 +116,24 @@ mkdir -p "$chroot/a/b"
 touch "$chroot/a/x" "$chroot/a/b/y"
 
 # No => they still exist
-CROUTON_MOUNT_RESPONSE='no'
+export CROUTON_MOUNT_RESPONSE='no'
 host enter-chroot -n "$RELEASE" true
 test -f "$chroot/a/x" -a -f "$chroot/a/b/y"
 
 # List => we get a list; command fails with exit code 2; files still exist
-CROUTON_MOUNT_RESPONSE='list'
-exitswithin 2 30 host enter-chroot -n "$RELEASE" true | passes grep '/a/b/y'
+export CROUTON_MOUNT_RESPONSE='list'
+exitswithin 2 30 host enter-chroot -n "$RELEASE" true | passes grep '^/a$'
 test -f "$chroot/a/x" -a -f "$chroot/a/b/y"
 
 # Delete => they no longer exist inside or outside the chroot
-CROUTON_MOUNT_RESPONSE='delete'
+export CROUTON_MOUNT_RESPONSE='delete'
 host enter-chroot -n "$RELEASE" test ! -d '/a'   -a ! -d '/a/b' \
                                   -a ! -f '/a/x' -a ! -f '/a/b/y'
 test ! -d "$chroot/a"   -a ! -d "$chroot/a/b" \
   -a ! -f "$chroot/a/x" -a ! -f "$chroot/a/b/y"
 
 # Yes => they exist inside the chroot but not out
-CROUTON_MOUNT_RESPONSE='yes'
+export CROUTON_MOUNT_RESPONSE='yes'
 mkdir -p "$chroot/a/b"
 touch "$chroot/a/x" "$chroot/a/b/y"
 host enter-chroot -n "$RELEASE" test -d '/a'   -a -d '/a/b' \
