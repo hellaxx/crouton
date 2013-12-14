@@ -122,7 +122,7 @@ test -f "$chroot/a/x" -a -f "$chroot/a/b/y"
 
 # List => we get a list; command fails with exit code 2; files still exist
 export CROUTON_MOUNT_RESPONSE='list'
-exitswithin 2 30 host enter-chroot -n "$RELEASE" true | passes grep '^/a$'
+exitswithin 2 30 host enter-chroot -n "$RELEASE" true 2>&1 | passes grep '^/a$'
 test -f "$chroot/a/x" -a -f "$chroot/a/b/y"
 
 # Delete => they no longer exist inside or outside the chroot
